@@ -3,15 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinGuard AI — Detección de Fraude Financiero (Bloque 2)</title>
+  <title>FinGuard AI — Fraud &amp; Anomaly Intelligence Console</title>
+
+  <!-- Tipografías SaaS: DM Sans (UI) + JetBrains Mono (Datos y Métricas) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN configurado con sistema de diseño Zinc/shadcn -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"DM Sans"', "system-ui", "-apple-system", "sans-serif"],
+            mono: ['"JetBrains Mono"', "monospace"],
+          },
+          colors: {
+            surface: {
+              bg: "#09090b",
+              card: "#0c0c0f",
+              elevated: "#121217",
+              border: "#1e1e24",
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- React 18 + ReactDOM 18 + HTM (JSX-like sin build step) + Chart.js -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <style>
+    body {
+      font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+    }
+    .bg-grid-pattern {
+      background-image: radial-gradient(rgba(37, 99, 235, 0.10) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: #27272a;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #10b981;
+      border: 2px solid #09090b;
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      transition: transform 0.15s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <div id="app" class="max-w-7xl mx-auto p-6">
-    <h1 class="text-2xl font-bold text-emerald-400">FinGuard AI — Dashboard Analítico</h1>
-    <p class="text-slate-400 mt-1">Sistema de detección de fraude transaccional y anomalías (Fase 1 inicializada).</p>
-  </div>
-  <script src="/static/app.js"></script>
+<body class="bg-zinc-50 dark:bg-[#09090b] text-zinc-950 dark:text-zinc-50 min-h-screen antialiased selection:bg-blue-500/30 selection:text-blue-200 transition-colors duration-200">
+  <div id="root"></div>
+  <script src="/app.js"></script>
 </body>
 </html>
-

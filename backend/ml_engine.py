@@ -119,14 +119,24 @@ class FraudDetectionEngine:
         )
         return cond.astype(int).to_numpy()
 
-    def load_and_prepare_data(self, force_regenerate: bool = False) -> pd.DataFrame:
+    def load_and_prepare_data(
+        self,
+        force_regenerate: bool = False,
+        seed: int | None = None,
+        fraud_rate: float = 0.03,
+    ) -> pd.DataFrame:
         """
         Carga o genera el dataset, verifica valores nulos y ejecuta la partición
         estratificada 80% train / 20% test aplicando StandardScaler sin data leakage.
         """
+        if seed is not None:
+            self.random_state = int(seed)
+
         if force_regenerate or not self.data_path.exists():
             self.df = generate_transactions_dataset(
-                seed=self.random_state, output_path=self.data_path
+                fraud_ratio=float(fraud_rate),
+                seed=self.random_state,
+                output_path=self.data_path,
             )
         else:
             self.df = pd.read_csv(self.data_path)
@@ -503,6 +513,44 @@ class FraudDetectionEngine:
                 "best_f1_score": best_f1_model["metrics"]["f1_score"],
             },
         }
+
+    def get_clustering_results(self) -> dict[str, Any]:
+        """Devuelve el análisis comparativo de clustering no supervisado (K-Means vs DBSCAN)."""
+        if not self.is_trained:
+            self.train_all()
+        return self.unsupervised_results
+
+    def retrain_with_params(
+        self,
+        seed: int = 42,
+        fraud_rate: float = 0.03,
+        threshold: float = 0.50,
+    ) -> dict[str, Any]:
+        """
+        Regenera el dataset con nueva semilla (seed) o tasa de fraude (fraud_rate),
+        re-entrena todos los modelos supervisados y no supervisados y retorna las métricas.
+        """
+        self.load_and_prepare_data(
+            force_regenerate=True, seed=int(seed), fraud_rate=float(fraud_rate)
+        )
+        assert self.X_train is not None and self.X_test is not None
+        assert self.y_train is not None and self.y_test is not None
+        assert self.X_train_scaled is not None and self.X_test_scaled is not None
+
+        self.cv_results = self._run_stratified_cv(n_splits=5)
+        self.models = {}
+        self.test_probabilities = {
+            "modo_base": self.apply_heuristic_rule(self.X_test).astype(float)
+        }
+        for key, estimator in self._build_supervised_estimators().items():
+            estimator.fit(self.X_train_scaled, self.y_train.to_numpy())
+            self.models[key] = estimator
+            self.test_probabilities[key] = estimator.predict_proba(self.X_test_scaled)[:, 1]
+
+        self.unsupervised_results = self._evaluate_unsupervised()
+        self.is_trained = True
+        self._save_artifacts()
+        return self.evaluate_at_threshold(threshold=threshold)
 
     def predict_transaction(
         self, transaction: dict[str, float | int], threshold: float = 0.50

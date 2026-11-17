@@ -63,20 +63,22 @@ def generate_transactions_dataset(
     legit_dispositivo[traveler_idx] = np.random.binomial(1, 0.35, size=n_travelers)
     legit_ratio[traveler_idx] = np.random.uniform(1.8, 4.5, size=n_travelers)
 
-    # --- 2. Transacciones Fraudulentas (3% -> 150 registros) ---
-    # Patrón A: Fraude de alto monto / vaciado de cuenta (85 casos)
-    # Patrón B: Fraude medio evasivo (<1500 S/ para evadir regla estática) + ráfagas (45 casos)
-    # Patrón C: Micro-pruebas atípicas de tarjetas (carding probing) y casos grises (20 casos)
-    n_high = 85
-    n_evasive = 45
-    n_micro_gray = n_fraud - n_high - n_evasive  # 20
+    # --- 2. Transacciones Fraudulentas (3% por defecto -> 150 registros) ---
+    # Patrón A: Fraude de alto monto / vaciado de cuenta (~56.7% -> 85 casos)
+    # Patrón B: Fraude medio evasivo (<1500 S/ para evadir regla estática) + ráfagas (30% -> 45 casos)
+    # Patrón C: Micro-pruebas atípicas de tarjetas (carding probing) y casos grises (~13.3% -> 20 casos)
+    n_high = int(round(n_fraud * (85 / 150)))
+    n_evasive = int(round(n_fraud * (45 / 150)))
+    n_micro_gray = max(0, n_fraud - n_high - n_evasive)
+    n_micro = n_micro_gray // 2
+    n_gray = n_micro_gray - n_micro
 
     fraud_monto = np.concatenate([
         np.random.uniform(1100.0, 6200.0, size=n_high),
         np.random.uniform(380.0, 1480.0, size=n_evasive),
         np.concatenate([
-            np.random.uniform(5.0, 35.0, size=10),    # Micro-pruebas atípicas (carding probing)
-            np.random.uniform(120.0, 550.0, size=10), # Casos grises de monto moderado
+            np.random.uniform(5.0, 35.0, size=n_micro),    # Micro-pruebas atípicas (carding probing)
+            np.random.uniform(120.0, 550.0, size=n_gray),  # Casos grises de monto moderado
         ]),
     ])
 
@@ -116,8 +118,8 @@ def generate_transactions_dataset(
         np.random.uniform(2.4, 8.8, size=n_high),
         np.random.uniform(2.1, 7.2, size=n_evasive),
         np.concatenate([
-            np.random.uniform(0.05, 0.35, size=10), # Micro-pruebas tienen ratio muy bajo o atípico
-            np.random.uniform(1.4, 3.8, size=10),
+            np.random.uniform(0.05, 0.35, size=n_micro), # Micro-pruebas tienen ratio muy bajo o atípico
+            np.random.uniform(1.4, 3.8, size=n_gray),
         ]),
     ])
 
